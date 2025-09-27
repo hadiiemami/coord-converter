@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Coordinate Converter | OSM + Leaflet</title>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+  <!-- Leaflet CSS (no integrity, no crossorigin) -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+  <!-- App CSS -->
+  <link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+  <header class="app-header">
+    <div class="brand">
+      <span class="logo">◎</span>
+      <h1>Coordinate Converter</h1>
+    </div>
+    <div class="header-actions">
+      <button id="themeToggle" class="btn ghost" aria-label="Toggle theme">🌓</button>
+      <a class="btn primary" href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OSM Credits</a>
+    </div>
+  </header>
+
+  <main class="layout">
+    <section id="map"></section>
+
+    <aside class="sidebar">
+      <div class="panel">
+        <h2>Input</h2>
+
+        <label class="field">
+          <span>Input format</span>
+          <select id="inputFormat">
+            <option value="dd">Decimal Degrees (DD)</option>
+            <option value="dms">Degrees, Minutes, Seconds (DMS)</option>
+            <option value="ddm">Degrees & Decimal Minutes (DDM)</option>
+            <option value="utm">UTM</option>
+          </select>
+        </label>
+
+        <!-- DD form -->
+        <div class="form-block" data-form="dd">
+          <div class="grid-2">
+            <label class="field">
+              <span>Latitude (DD)</span>
+              <input id="ddLat" type="text" placeholder="e.g. 40.4093" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span>Longitude (DD)</span>
+              <input id="ddLng" type="text" placeholder="e.g. 49.8671" inputmode="decimal">
+            </label>
+          </div>
+        </div>
+
+        <!-- DMS form -->
+        <div class="form-block hidden" data-form="dms">
+          <div class="group">
+            <div class="legend">Latitude (DMS)</div>
+            <div class="grid-4">
+              <input id="dmsLatDeg" class="mono" type="text" placeholder="Deg" inputmode="numeric">
+              <input id="dmsLatMin" class="mono" type="text" placeholder="Min" inputmode="numeric">
+              <input id="dmsLatSec" class="mono" type="text" placeholder="Sec" inputmode="decimal">
+              <select id="dmsLatHem">
+                <option value="N">N</option>
+                <option value="S">S</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="group">
+            <div class="legend">Longitude (DMS)</div>
+            <div class="grid-4">
+              <input id="dmsLngDeg" class="mono" type="text" placeholder="Deg" inputmode="numeric">
+              <input id="dmsLngMin" class="mono" type="text" placeholder="Min" inputmode="numeric">
+              <input id="dmsLngSec" class="mono" type="text" placeholder="Sec" inputmode="decimal">
+              <select id="dmsLngHem">
+                <option value="E">E</option>
+                <option value="W">W</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- DDM form -->
+        <div class="form-block hidden" data-form="ddm">
+          <div class="group">
+            <div class="legend">Latitude (DDM)</div>
+            <div class="grid-4">
+              <input id="ddmLatDeg" class="mono" type="text" placeholder="Deg" inputmode="numeric">
+              <input id="ddmLatMin" class="mono" type="text" placeholder="Dec.Min" inputmode="decimal">
+              <select id="ddmLatHem">
+                <option value="N">N</option>
+                <option value="S">S</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="group">
+            <div class="legend">Longitude (DDM)</div>
+            <div class="grid-4">
+              <input id="ddmLngDeg" class="mono" type="text" placeholder="Deg" inputmode="numeric">
+              <input id="ddmLngMin" class="mono" type="text" placeholder="Dec.Min" inputmode="decimal">
+              <select id="ddmLngHem">
+                <option value="E">E</option>
+                <option value="W">W</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <!-- UTM form -->
+        <div class="form-block hidden" data-form="utm">
+          <div class="grid-2">
+            <label class="field">
+              <span>Zone</span>
+              <input id="utmZone" type="text" placeholder="e.g. 38" inputmode="numeric">
+            </label>
+            <label class="field">
+              <span>Hemisphere</span>
+              <select id="utmHem">
+                <option value="N">N</option>
+                <option value="S">S</option>
+              </select>
+            </label>
+          </div>
+          <div class="grid-2">
+            <label class="field">
+              <span>Easting (m)</span>
+              <input id="utmE" type="text" placeholder="e.g. 387000" inputmode="decimal">
+            </label>
+            <label class="field">
+              <span>Northing (m)</span>
+              <input id="utmN" type="text" placeholder="e.g. 4475000" inputmode="decimal">
+            </label>
+          </div>
+        </div>
+
+        <div class="actions">
+          <button id="btnConvert" class="btn primary">Convert & Center Map</button>
+          <button id="btnFromMap" class="btn">Use Last Map Click</button>
+        </div>
+        <p class="hint">Tip: click on the map to get coordinates instantly.</p>
+        <div id="inputErrors" class="errors" role="alert" aria-live="polite"></div>
+      </div>
+
+      <div class="panel">
+        <h2>Output</h2>
+        <div class="output">
+          <div class="out-row">
+            <span class="label">DD</span>
+            <code id="outDD" class="mono">–</code>
+            <button class="btn ghost copy" data-copy="outDD">Copy</button>
+          </div>
+          <div class="out-row">
+            <span class="label">DMS</span>
+            <code id="outDMS" class="mono">–</code>
+            <button class="btn ghost copy" data-copy="outDMS">Copy</button>
+          </div>
+          <div class="out-row">
+            <span class="label">DDM</span>
+            <code id="outDDM" class="mono">–</code>
+            <button class="btn ghost copy" data-copy="outDDM">Copy</button>
+          </div>
+          <div class="out-row">
+            <span class="label">UTM</span>
+            <code id="outUTM" class="mono">–</code>
+            <button class="btn ghost copy" data-copy="outUTM">Copy</button>
+          </div>
+        </div>
+      </div>
+    </aside>
+  </main>
+
+  <footer class="app-footer">
+    <small>
+      © <span id="year"></span> • Built with Leaflet & OpenStreetMap • MIT License
+    </small>
+  </footer>
+
+  <!-- Leaflet JS (no integrity, no crossorigin) -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+  <!-- proj4 for UTM/WGS84 conversions -->
+  <script src="https://cdn.jsdelivr.net/npm/proj4@2.10.0/dist/proj4.js"></script>
+
+  <!-- App JS -->
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
