@@ -20,6 +20,7 @@ Here’s a quick demo of the application in action:
 
 ![Demo](Intro.gif)
 
+
 ---
 
 ## 🚀 Features
